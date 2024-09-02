@@ -1,6 +1,6 @@
 "use client";
 
-import {useForm} from 'react-hook-form'
+import {useForm, type SubmitHandler} from 'react-hook-form'
 import { api } from "~/trpc/react";
 import Image from "next/image"
 
@@ -23,11 +23,11 @@ function formatTimestamp(timestamp: number) {
 }
 
 export function PostForm() {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit } = useForm<PostData>();
   const uploadFileMutation = api.upload.uploadFile.useMutation();
   const createPostMutation = api.post.create.useMutation();
 
-  const onSubmit = async (data: PostData) => {
+  const onSubmit: SubmitHandler<PostData> = async (data) => {
     let coverImageUrl = '';
 
     if (data.coverImage[0]) {
@@ -148,9 +148,10 @@ export function PostList() {
     <>
       {post.isLoading? <p>Loading...</p> : null}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-8">
-        {post.data?.map((post) => (
+        {post.data?.map((post) => ( 
           <article key={post.id} className="overflow-hidden rounded-lg shadow transition hover:shadow-lg">
-            <Image src={post.coverImage || defaultUrl} width="100" height={100} alt="cover image" className="h-56 w-full object-cover"></Image>
+            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+            <Image src={post.coverImage ?? defaultUrl} width="100" height={100} alt="cover image" className="h-56 w-full object-cover"></Image>
 
             <div className="bg-white p-4 sm:p-6 h-full">
               <time className="block text-xs text-gray-500"> {formatTimestamp(post.updatedAt.getTime())} </time>

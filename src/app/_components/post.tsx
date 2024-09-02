@@ -24,35 +24,14 @@ function formatTimestamp(timestamp: number) {
 
 export function PostForm() {
   const { register, handleSubmit } = useForm<PostData>();
-  const uploadFileMutation = api.upload.uploadFile.useMutation();
   const createPostMutation = api.post.create.useMutation();
 
   const onSubmit: SubmitHandler<PostData> = async (data) => {
-    let coverImageUrl = '';
-
-    if (data.coverImage[0]) {
-      const file = data.coverImage[0];
-
-      // 将文件转换为 Base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-
-      reader.onload = async () => {
-        const base64String = reader.result?.toString().split(',')[1]; // 获取 Base64 字符串
-        // 1. 通过 tRPC 上传 Base64 文件
-        if (base64String) {
-          const uploadResponse = await uploadFileMutation.mutateAsync({ file: base64String, fileName: file.name });
-          coverImageUrl = uploadResponse.url;
-        }
-
-        // 2. 创建 Post
-        await createPostMutation.mutateAsync({
-          name: data.name,
-          content: data.content,
-          coverImage: coverImageUrl,
-        });
-      };
-    }
+    await createPostMutation.mutateAsync({
+      name: data.name,
+      content: data.content,
+      coverImage: '',
+    });
   };
 
   return (
@@ -143,15 +122,14 @@ export function PostForm() {
 
 export function PostList() {
   const post = api.post.getList.useQuery();
-  const defaultUrl = "/uploads/1725005138710-photo-1524758631624-e2822e304c36.avif";
+  const defaultUrl = "/1725005138710-photo-1524758631624-e2822e304c36.avif";
   return (
     <>
       {post.isLoading? <p>Loading...</p> : null}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-8">
         {post.data?.map((post) => ( 
           <article key={post.id} className="overflow-hidden rounded-lg shadow transition hover:shadow-lg">
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
-            <Image src={post.coverImage ?? defaultUrl} width="100" height={100} alt="cover image" className="h-56 w-full object-cover"></Image>
+            <Image src={defaultUrl} width="500" height="500" alt="cover image" className="h-56 w-full object-cover"></Image>
 
             <div className="bg-white p-4 sm:p-6 h-full">
               <time className="block text-xs text-gray-500"> {formatTimestamp(post.updatedAt.getTime())} </time>
